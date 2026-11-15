@@ -13,7 +13,7 @@ class GrafoListaAdjacencia:
     def remover_vertice(self, v):
         if v not in self.adj:
             print(f"Vertice {v} nao encontrado")
-            return
+            return8
         del self.adj[v]
         for vertice in self.adj:
             if v in self.adj[vertice]:
@@ -56,12 +56,14 @@ class GrafoListaAdjacencia:
         print(f"Existe aresta ({u} -> {v})? {'SIM' if existe else 'NAO'}")
         return existe
 
-    def listar_vizinhos(self, v):
+    def listar_vizinhos(self, v, silencioso=False):
         if v not in self.adj:
-            print(f"Vertice '{v}' nao encontrado.")
+            if not silencioso:
+                print(f"Vertice '{v}' nao encontrado.")
             return []
         vizinhos = list(self.adj[v].keys())
-        print(f"Vizinhos de '{v}' (Saida): {vizinhos}")
+        if not silencioso:
+            print(f"Vizinhos de '{v}' (Saida): {vizinhos}")
         return vizinhos
 
     def percurso_valido(self, sequencia_vertices):
@@ -84,11 +86,61 @@ class GrafoListaAdjacencia:
         for vertice, vizinhos in self.adj.items():
             print(f"  {vertice} -> {list(vizinhos.keys())}")
 
+    def busca_em_largura(self, origem):
+        if origem not in self.adj:
+            print(f"Vertice '{origem}' nao encontrado.")
+            return []
+
+        fila = [origem]
+        visitados = [origem]
+        ordem = []
+
+        while fila:
+            atual = fila.pop(0)
+            ordem.append(atual)
+
+            for vizinho in self.listar_vizinhos(atual, silencioso=True):
+                if vizinho not in visitados:
+                    visitados.append(vizinho)
+                    fila.append(vizinho)
+
+        print(f"Busca em largura: {' -> '.join(ordem)}")
+        return ordem
+
+    def menor_caminho(self, origem, destino):
+        if origem not in self.adj or destino not in self.adj:
+            print(f"Ambos os vertices ({origem}, {destino}) precisam existir.")
+            return []
+
+        fila = [origem]
+        anterior = {origem: None}
+
+        while fila:
+            atual = fila.pop(0)
+
+            if atual == destino:
+                caminho = [destino]
+                while atual != origem:
+                    atual = anterior[atual]
+                    caminho.append(atual)
+                caminho.reverse()
+                print(f"Menor caminho: {' -> '.join(caminho)}")
+                print(f"Quantidade de arestas: {len(caminho) - 1}")
+                return caminho
+
+            for vizinho in self.listar_vizinhos(atual, silencioso=True):
+                if vizinho not in anterior:
+                    anterior[vizinho] = atual
+                    fila.append(vizinho)
+
+        print(f"Nao existe caminho entre '{origem}' e '{destino}'.")
+        return []
+
 
 class GrafoMatriz:
     def __init__(self, dir=True):
-        self.vertices = []  
-        self.matriz = []    
+        self.vertices = []
+        self.matriz = []
         self.dir = dir
 
     def inserir_vertice(self, v):
@@ -160,13 +212,15 @@ class GrafoMatriz:
         print(f"Existe aresta ({u} -> {v})? {'SIM' if existe else 'NAO'}")
         return existe
 
-    def listar_vizinhos(self, v):
+    def listar_vizinhos(self, v, silencioso=False):
         if v not in self.vertices:
-            print(f"Vertice '{v}' nao encontrado.")
+            if not silencioso:
+                print(f"Vertice '{v}' nao encontrado.")
             return []
         idx = self.vertices.index(v)
         vizinhos = [self.vertices[i] for i, peso in enumerate(self.matriz[idx]) if peso != 0]
-        print(f"Vizinhos de '{v}' (Saida): {vizinhos}")
+        if not silencioso:
+            print(f"Vizinhos de '{v}' (Saida): {vizinhos}")
         return vizinhos
 
     def percurso_valido(self, sequencia_vertices):
@@ -197,11 +251,61 @@ class GrafoMatriz:
             linha_str = " ".join([f"{peso:3}" for peso in self.matriz[i]])
             print(f"{v:2} [{linha_str}]")
 
+    def busca_em_largura(self, origem):
+        if origem not in self.vertices:
+            print(f"Vertice '{origem}' nao encontrado.")
+            return []
+
+        fila = [origem]
+        visitados = [origem]
+        ordem = []
+
+        while fila:
+            atual = fila.pop(0)
+            ordem.append(atual)
+
+            for vizinho in self.listar_vizinhos(atual, silencioso=True):
+                if vizinho not in visitados:
+                    visitados.append(vizinho)
+                    fila.append(vizinho)
+
+        print(f"Busca em largura: {' -> '.join(ordem)}")
+        return ordem
+
+    def menor_caminho(self, origem, destino):
+        if origem not in self.vertices or destino not in self.vertices:
+            print(f"Ambos os vertices ({origem}, {destino}) precisam existir.")
+            return []
+
+        fila = [origem]
+        anterior = {origem: None}
+
+        while fila:
+            atual = fila.pop(0)
+
+            if atual == destino:
+                caminho = [destino]
+                while atual != origem:
+                    atual = anterior[atual]
+                    caminho.append(atual)
+                caminho.reverse()
+                print(f"Menor caminho: {' -> '.join(caminho)}")
+                print(f"Quantidade de arestas: {len(caminho) - 1}")
+                return caminho
+
+            for vizinho in self.listar_vizinhos(atual, silencioso=True):
+                if vizinho not in anterior:
+                    anterior[vizinho] = atual
+                    fila.append(vizinho)
+
+        print(f"Nao existe caminho entre '{origem}' e '{destino}'.")
+        return []
+
 
 class GrafoListaArestas:
     def __init__(self, dir=True):
-        self.vertices = []  
-        self.arestas = []   
+        self.vertices = []
+        self.arestas = []
         self.dir = dir
 
     def inserir_vertice(self, v):
@@ -239,7 +343,7 @@ class GrafoListaArestas:
             if aresta[0] == u and aresta[1] == v:
                 encontrou = True
             elif not self.dir and aresta[0] == v and aresta[1] == u:
-                pass  
+                pass
             else:
                 arestas_restantes.append(aresta)
         if encontrou:
@@ -267,12 +371,14 @@ class GrafoListaArestas:
             print(f"Existe aresta ({u} -> {v})? {'SIM' if existe else 'NAO'}")
         return existe
 
-    def listar_vizinhos(self, v):
+    def listar_vizinhos(self, v, silencioso=False):
         if v not in self.vertices:
-            print(f"Vertice '{v}' nao encontrado.")
+            if not silencioso:
+                print(f"Vertice '{v}' nao encontrado.")
             return []
         vizinhos = [aresta[1] for aresta in self.arestas if aresta[0] == v]
-        print(f"Vizinhos de '{v}' (Saida): {vizinhos}")
+        if not silencioso:
+            print(f"Vizinhos de '{v}' (Saida): {vizinhos}")
         return vizinhos
 
     def percurso_valido(self, sequencia_vertices):
@@ -307,6 +413,56 @@ class GrafoListaArestas:
                     continue
                 print(f"  ({u}) --[{peso}]--> ({v})")
                 exibidas.append((u, v))
+
+    def busca_em_largura(self, origem):
+        if origem not in self.vertices:
+            print(f"Vertice '{origem}' nao encontrado.")
+            return []
+
+        fila = [origem]
+        visitados = [origem]
+        ordem = []
+
+        while fila:
+            atual = fila.pop(0)
+            ordem.append(atual)
+
+            for vizinho in self.listar_vizinhos(atual, silencioso=True):
+                if vizinho not in visitados:
+                    visitados.append(vizinho)
+                    fila.append(vizinho)
+
+        print(f"Busca em largura: {' -> '.join(ordem)}")
+        return ordem
+
+    def menor_caminho(self, origem, destino):
+        if origem not in self.vertices or destino not in self.vertices:
+            print(f"Ambos os vertices ({origem}, {destino}) precisam existir.")
+            return []
+
+        fila = [origem]
+        anterior = {origem: None}
+
+        while fila:
+            atual = fila.pop(0)
+
+            if atual == destino:
+                caminho = [destino]
+                while atual != origem:
+                    atual = anterior[atual]
+                    caminho.append(atual)
+                caminho.reverse()
+                print(f"Menor caminho: {' -> '.join(caminho)}")
+                print(f"Quantidade de arestas: {len(caminho) - 1}")
+                return caminho
+
+            for vizinho in self.listar_vizinhos(atual, silencioso=True):
+                if vizinho not in anterior:
+                    anterior[vizinho] = atual
+                    fila.append(vizinho)
+
+        print(f"Nao existe caminho entre '{origem}' e '{destino}'.")
+        return []
 
 
 def menu():
@@ -345,10 +501,12 @@ def menu():
         print("7. Listar vizinhos de um vertice")
         print("8. Verificar se um percurso e possivel")
         print("9. Exibir estrutura do grafo")
+        print("10. Busca em largura (BFS)")
+        print("11. Menor caminho (BFS)")
         print("0. Sair")
         print("="*40)
 
-        opcao = input("Escolha uma opcao (0-9): ").strip()
+        opcao = input("Escolha uma opcao (0-11): ").strip()
 
         if opcao == "1":
             v = input("Digite o nome do vertice: ").strip()
@@ -380,6 +538,15 @@ def menu():
                 g.percurso_valido(percurso)
         elif opcao == "9":
             g.exibir_grafo()
+        elif opcao == "10":
+            origem = input("Vertice de origem: ").strip()
+            if origem:
+                g.busca_em_largura(origem)
+        elif opcao == "11":
+            origem = input("Vertice de origem: ").strip()
+            destino = input("Vertice de destino: ").strip()
+            if origem and destino:
+                g.menor_caminho(origem, destino)
         elif opcao == "0":
             print("\nSaindo do programa. Ate logo!")
             break
